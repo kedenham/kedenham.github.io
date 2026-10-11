@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wish lists</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #FFF8E7;
+    --ink: #1B1A1F;
+    --muted: #5E5A66;
+    --card: #FFFFFF;
+    --line: #1B1A1F;
+    --yellow: #FFD23F;
+    --red: #E8412C;
+    --blue: #2D6CDF;
+    --green: #1F9D6B;
+    --dot: rgba(27,26,31,.13);
+    --claimed: #EFEBE0;
+    --shadow: 4px 4px 0 var(--line);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #17161B; --ink: #F5F1E6; --muted: #B9B3C2; --card: #24222B;
+      --line: #F5F1E6; --dot: rgba(245,241,230,.10); --claimed: #2C2A33;
+      --yellow: #F2C230; --red: #F0604C; --blue: #6B9BF2; --green: #3FC08E;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font: 16px/1.55 Nunito, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 16px 64px; }
+  h1, h2, h3, .display { font-family: 'Lilita One', 'Arial Black', sans-serif; font-weight: 400; letter-spacing: .3px; }
+
+  /* Masthead */
+  .mast {
+    background:
+      radial-gradient(var(--dot) 1.6px, transparent 1.7px) 0 0/12px 12px,
+      var(--yellow);
+    border-bottom: 3px solid var(--line);
+    color: #1B1A1F;
+  }
+  .mast .wrap { padding-top: 28px; padding-bottom: 28px; }
+  .kicker { font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; font-size: 13px; }
+  .mast h1 { font-size: clamp(40px, 8vw, 72px); line-height: .95; margin: 6px 0 0; }
+  .mast h1 span { color: var(--red); -webkit-text-stroke: 0; }
+  .kids { display: flex; gap: 8px; margin-top: 18px; flex-wrap: wrap; }
+  .kids button {
+    font: 400 20px 'Lilita One', sans-serif; padding: 6px 18px; border-radius: 999px;
+    border: 3px solid #1B1A1F; background: #fff; color: #1B1A1F; cursor: pointer;
+  }
+  .kids button[aria-pressed="true"] { background: #1B1A1F; color: var(--yellow); }
+
+  /* Intro */
+  .intro { display: grid; grid-template-columns: 1.6fr 1fr; gap: 20px; margin: 28px 0 8px; }
+  @media (max-width: 760px) { .intro { grid-template-columns: 1fr; } }
+  .bubble {
+    position: relative; background: var(--card); border: 3px solid var(--line);
+    border-radius: 22px; padding: 20px 22px; box-shadow: var(--shadow);
+  }
+  .bubble h2 { margin: 0 0 8px; font-size: 26px; }
+  .bubble p { margin: 0 0 10px; }
+  .bubble p:last-child { margin-bottom: 0; }
+  .sizes { align-self: start; background: var(--blue); color: #fff; border-color: var(--line); }
+  .sizes h2 { color: #fff; }
+  .sizes .row { display: flex; gap: 10px; align-items: baseline; margin-bottom: 8px; }
+  .how { font-size: 14px; color: var(--muted); margin: 18px 0 0; }
+
+  /* Category nav */
+  nav.cats {
+    position: sticky; top: 0; z-index: 5; background: var(--paper);
+    border-bottom: 2px dashed var(--dot); margin: 24px -16px 0; padding: 10px 16px;
+    display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none;
+  }
+  nav.cats::-webkit-scrollbar { display: none; }
+  nav.cats a {
+    flex: none; text-decoration: none; color: var(--ink); font-weight: 800; font-size: 14px;
+    border: 2px solid var(--line); border-radius: 999px; padding: 4px 12px; background: var(--card);
+  }
+  nav.cats a .n { color: var(--muted); font-weight: 600; margin-left: 4px; }
+
+  /* Sections */
+  section.cat { margin-top: 40px; scroll-margin-top: 64px; }
+  .cat-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .cat-head h2 { font-size: 34px; margin: 0; }
+  .badge {
+    display: inline-block; background: var(--red); color: #fff; font: 400 14px 'Lilita One', sans-serif;
+    padding: 2px 10px; border-radius: 6px; transform: rotate(-3deg); border: 2px solid var(--line);
+  }
+  .cat-note { margin: 6px 0 0; color: var(--muted); max-width: 720px; }
+  .cat-btn { margin-top: 12px; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; margin-top: 18px; }
+  .item {
+    position: relative; background: var(--card); border: 3px solid var(--line); border-radius: 14px;
+    padding: 14px 14px 12px; display: flex; flex-direction: column; gap: 6px; box-shadow: var(--shadow);
+    transition: transform .12s ease;
+  }
+  .item:hover { transform: translate(-1px, -1px); }
+  .item img { width: 100%; aspect-ratio: 4/3; object-fit: contain; background: #fff; border-radius: 8px; }
+  .item h3 { font-family: Nunito, sans-serif; font-weight: 800; font-size: 17px; line-height: 1.25; margin: 0; }
+  .item .note { font-size: 14px; color: var(--muted); margin: 0; }
+  .item .actions { margin-top: auto; padding-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .star { align-self: flex-start; font-weight: 800; font-size: 13px; background: var(--yellow); color: #1B1A1F; border: 2px solid var(--line); border-radius: 999px; padding: 1px 10px; }
+  .item.claimed { background: var(--claimed); box-shadow: none; }
+  .item.claimed h3, .item.claimed .note { opacity: .55; }
+  .stamp {
+    align-self: flex-start; transform: rotate(-2deg);
+    font: 400 15px 'Lilita One', sans-serif; background: var(--green); color: #fff;
+    border: 2px solid var(--line); padding: 3px 10px; border-radius: 6px;
+  }
+
+  .btn {
+    font: 800 14px Nunito, sans-serif; border-radius: 10px; padding: 8px 12px; cursor: pointer;
+    border: 2px solid var(--line); text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
+    background: var(--card); color: var(--ink);
+  }
+  .btn.primary { background: var(--red); color: #fff; }
+  .btn.dark { background: var(--ink); color: var(--paper); }
+  .btn:focus-visible, .kids button:focus-visible, nav.cats a:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+  .btn[disabled] { opacity: .5; cursor: default; }
+
+  /* Dialog */
+  dialog {
+    border: 3px solid var(--line); border-radius: 18px; padding: 0; width: min(460px, calc(100vw - 32px));
+    background: var(--card); color: var(--ink); box-shadow: 6px 6px 0 var(--line);
+  }
+  dialog::backdrop { background: rgba(20,18,24,.55); }
+  .dlg { padding: 22px; }
+  .dlg h2 { margin: 0 0 4px; font-size: 26px; }
+  .dlg .what { font-weight: 800; margin: 0 0 16px; }
+  label { display: block; font-weight: 800; font-size: 14px; margin: 14px 0 6px; }
+  .hint { font-weight: 600; color: var(--muted); }
+  input[type=text], textarea {
+    width: 100%; font: 16px Nunito, sans-serif; padding: 10px 12px; border-radius: 10px;
+    border: 2px solid var(--line); background: var(--paper); color: var(--ink);
+  }
+  textarea { min-height: 70px; resize: vertical; }
+  .occ { display: flex; gap: 10px; }
+  .occ label { flex: 1; margin: 0; }
+  .occ input { position: absolute; opacity: 0; pointer-events: none; }
+  .occ span {
+    display: block; text-align: center; padding: 10px; border: 2px solid var(--line); border-radius: 10px;
+    cursor: pointer; font-size: 16px; background: var(--paper);
+  }
+  .occ input:checked + span { background: var(--yellow); color: #1B1A1F; }
+  .occ input:focus-visible + span { outline: 3px solid var(--blue); outline-offset: 2px; }
+  .dlg .row { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; flex-wrap: wrap; }
+  .err { color: var(--red); font-weight: 800; margin: 12px 0 0; min-height: 1em; }
+  .done-ico { font-size: 44px; line-height: 1; }
+
+  .loading { padding: 60px 0; text-align: center; font: 400 24px 'Lilita One', sans-serif; }
+  footer { margin-top: 56px; font-size: 13px; color: var(--muted); text-align: center; }
+</style>
+</head>
+<body>
+<header class="mast"><div class="wrap">
+  <div class="kicker">Birthday &amp; Christmas</div>
+  <h1 id="title">Wish lists</h1>
+  <div class="kids" id="kids" role="group" aria-label="Choose a list"></div>
+</div></header>
+
+<main class="wrap" id="app"><div class="loading">Fetching the list…</div></main>
+
+<dialog id="dlg"><div class="dlg" id="dlgBody"></div></dialog>
+
+<script>
+(function () {
+  var state = { data: null, child: null };
+  var app = document.getElementById('app');
+  var dlg = document.getElementById('dlg');
+  var dlgBody = document.getElementById('dlgBody');
+
+  /* ---- PASTE YOUR GOOGLE WEB APP URL BETWEEN THE QUOTES ---- */
+  var API_URL = 'https://script.google.com/macros/s/AKfycbzh-qTGS21QDY2Sj8wRYUhx6BEglfDCbMb9k2qyEPvHfaVlLsK3JUQR-ZoJEBBo1YhQ/exec';
+
+  function call(fn, arg) {
+    if (window.MOCK) return window.MOCK[fn](arg);
+    if (!/^https:\/\/script\.google\.com\//.test(API_URL)) return Promise.reject(new Error('The list isn\u2019t connected yet.'));
+    var req = fn === 'getData'
+      ? fetch(API_URL + '?api=data&t=' + Date.now())
+      : fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(arg) });
+    return req.then(function (r) { return r.json(); }).then(function (r) {
+      if (r && r.ok === false) throw new Error(r.error || 'Something went wrong');
+      return r;
+    });
+  }
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function safeUrl(u) { return /^https?:\/\//i.test(u || '') ? u : ''; }
+  function slug(s) { return 'c-' + String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-'); }
+  function retailer(u) {
+    if (/amazon\./i.test(u)) return 'Amazon';
+    if (/argos\./i.test(u)) return 'Argos';
+    if (/lego\.com/i.test(u)) return 'LEGO';
+    if (/yoto/i.test(u)) return 'Yoto';
+    if (/wa\.me|whatsapp/i.test(u)) return 'WhatsApp';
+    if (/dogstrust/i.test(u)) return 'Dogs Trust';
+    if (/superspace/i.test(u)) return 'Superspace';
+    if (/chessington/i.test(u)) return 'Chessington';
+    if (/menkind/i.test(u)) return 'Menkind';
+    return 'the shop';
+  }
+
+  function load() {
+    return call('getData').then(function (d) {
+      state.data = d;
+      if (!state.child || !d.children.some(function (c) { return c.name === state.child; })) {
+        var fromHash = decodeURIComponent((location.hash || '').slice(1));
+        var match = d.children.filter(function (c) { return c.name.toLowerCase() === fromHash.toLowerCase(); })[0];
+        state.child = (match || d.children[0] || {}).name || null;
+      }
+      render();
+    }).catch(function (e) {
+      app.innerHTML = '<div class="loading">Couldn’t load the list – please refresh.<br><small>' + esc(e.message) + '</small></div>';
+    });
+  }
+
+  function render() {
+    var d = state.data;
+    var kidsEl = document.getElementById('kids');
+    kidsEl.innerHTML = d.children.length > 1 ? d.children.map(function (c) {
+      return '<button type="button" data-kid="' + esc(c.name) + '" aria-pressed="' + (c.name === state.child) + '">' + esc(c.name) + '</button>';
+    }).join('') : '';
+    var kid = d.children.filter(function (c) { return c.name === state.child; })[0];
+    if (!kid) { app.innerHTML = '<div class="loading">No lists yet.</div>'; return; }
+    document.getElementById('title').innerHTML = esc(kid.name) + '’s <span>wish list</span>';
+    document.title = kid.name + '’s wish list';
+
+    var items = d.items.filter(function (i) { return !i.child || i.child === kid.name; });
+    var catOrder = d.categories.map(function (c) { return c.name; });
+    items.forEach(function (i) { if (catOrder.indexOf(i.category) < 0) catOrder.push(i.category); });
+    var catInfo = {}; d.categories.forEach(function (c) { catInfo[c.name] = c; });
+    var groups = catOrder.map(function (name) {
+      return { name: name, info: catInfo[name] || {}, items: items.filter(function (i) { return i.category === name; }).sort(function (a, b) { return (b.star ? 1 : 0) - (a.star ? 1 : 0); }) };
+    }).filter(function (g) { return g.items.length; });
+
+    var html = '';
+    html += '<div class="intro">';
+    html += '<div class="bubble"><h2>All about ' + esc(kid.name) + '</h2>' +
+      kid.intro.split(/\n\s*\n/).map(function (p) { return '<p>' + esc(p) + '</p>'; }).join('') + '</div>';
+    if (kid.sizes) {
+      html += '<div class="bubble sizes"><h2>Sizes</h2>' + kid.sizes.split(/\n/).map(function (l) {
+        var m = l.split(/:\s*/); return m.length > 1
+          ? '<div class="row"><strong>' + esc(m.shift()) + '</strong><span>' + esc(m.join(': ')) + '</span></div>'
+          : '<p>' + esc(l) + '</p>';
+      }).join('') + '</div>';
+    }
+    html += '</div>';
+    html += '<p class="how">Found something? Tap <strong>I’ll get this</strong> so nobody doubles up. Your name only goes to Kate for thank-yous after the date – everyone else just sees “Someone’s got this”.</p>';
+
+    html += '<nav class="cats" aria-label="Categories">' + groups.map(function (g) {
+      var left = g.items.filter(function (i) { return !i.claimed; }).length;
+      return '<a href="#' + slug(g.name) + '">' + esc(g.name) + '<span class="n">' + left + '</span></a>';
+    }).join('') + '</nav>';
+
+    groups.forEach(function (g) {
+      var left = g.items.filter(function (i) { return !i.claimed; }).length;
+      html += '<section class="cat" id="' + slug(g.name) + '"><div class="cat-head"><h2>' + esc(g.name) + '</h2>' +
+        (left ? '<span class="badge">' + left + ' to go</span>' : '<span class="badge" style="background:var(--green)">All sorted!</span>') + '</div>';
+      if (g.info.note) html += '<p class="cat-note">' + esc(g.info.note) + '</p>';
+      var bl = safeUrl(g.info.buttonLink);
+      if (bl && g.info.buttonLabel) html += '<div class="cat-btn"><a class="btn dark" href="' + esc(bl) + '" target="_blank" rel="noopener">' + esc(g.info.buttonLabel) + ' ↗</a></div>';
+      html += '<div class="grid">' + g.items.map(function (i) { return card(i, g.info); }).join('') + '</div>';
+      html += '</section>';
+    });
+    html += '<footer>Made with love (and a spreadsheet). Questions? Just message Kate.</footer>';
+    app.innerHTML = html;
+  }
+
+  function card(i, info) {
+    var link = safeUrl(i.link) || safeUrl(info.buttonLink);
+    var label = safeUrl(i.link) ? 'Buy from ' + retailer(i.link) : (info.buttonLabel || 'Where to buy');
+    var img = safeUrl(i.image) ? '<img src="' + esc(i.image) + '" alt="" loading="lazy">' : '';
+    return '<article class="item' + (i.claimed ? ' claimed' : '') + '">' + img +
+      (i.claimed ? '<span class="stamp">Someone’s got this</span>' : '') +
+      (i.star && !i.claimed ? '<span class="star">⭐ ' + esc(state.child) + '’s top pick</span>' : '') +
+      '<h3>' + esc(i.title) + '</h3>' + (i.note ? '<p class="note">' + esc(i.note) + '</p>' : '') +
+      (i.claimed ? '' : '<div class="actions">' +
+        (link ? '<a class="btn" href="' + esc(link) + '" target="_blank" rel="noopener">' + esc(label) + ' ↗</a>' : '') +
+        '<button class="btn primary" type="button" data-claim="' + esc(i.id) + '">I’ll get this</button></div>') +
+      '</article>';
+  }
+
+  function openClaim(id) {
+    var item = state.data.items.filter(function (i) { return i.id === id; })[0];
+    if (!item) return;
+    var kid = state.child;
+    var saved = {};
+    try { saved = JSON.parse(localStorage.getItem('giver') || '{}'); } catch (e) {}
+    dlgBody.innerHTML =
+      '<form id="claimForm" novalidate><h2>Lovely choice!</h2><p class="what">' + esc(item.title) + '</p>' +
+      '<label for="gName">Your name <span class="hint">– only goes to Kate for thank-yous after the date</span></label>' +
+      '<input type="text" id="gName" autocomplete="name" maxlength="80" value="' + esc(saved.name || '') + '" required>' +
+      '<label>Is it for…</label><div class="occ">' +
+        '<label><input type="radio" name="occ" value="Christmas"' + (saved.occ === 'Christmas' ? ' checked' : '') + '><span>🎄 Christmas</span></label>' +
+        '<label><input type="radio" name="occ" value="Birthday"' + (saved.occ === 'Birthday' ? ' checked' : '') + '><span>🎂 ' + esc(kid) + '’s birthday</span></label>' +
+      '</div>' +
+      '<label for="gMsg">Anything Kate should know? <span class="hint">(optional)</span></label>' +
+      '<textarea id="gMsg" maxlength="500" placeholder="e.g. getting the first three Dragon Masters"></textarea>' +
+      '<p class="err" id="err" role="alert"></p>' +
+      '<div class="row"><button type="button" class="btn" data-close>Cancel</button>' +
+      '<button type="submit" class="btn primary" id="go">Claim it</button></div></form>';
+    dlg.showModal();
+    setTimeout(function () { var n = document.getElementById('gName'); if (!n.value) n.focus(); }, 30);
+
+    document.getElementById('claimForm').addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      var name = document.getElementById('gName').value.trim();
+      var occEl = dlgBody.querySelector('input[name=occ]:checked');
+      var err = document.getElementById('err');
+      if (!name) { err.textContent = 'Please add your name so Kate can say thank you.'; return; }
+      if (!occEl) { err.textContent = 'Christmas or birthday?'; return; }
+      var go = document.getElementById('go'); go.disabled = true; go.textContent = 'Saving…'; err.textContent = '';
+      try { localStorage.setItem('giver', JSON.stringify({ name: name, occ: occEl.value })); } catch (e) {}
+      call('claimItem', { id: id, name: name, occasion: occEl.value, message: document.getElementById('gMsg').value })
+        .then(function () { done(item, occEl.value); load(); })
+        .catch(function (e) { go.disabled = false; go.textContent = 'Claim it'; err.textContent = e.message; load(); });
+    });
+  }
+
+  function done(item, occ) {
+    var info = (state.data.categories.filter(function (c) { return c.name === item.category; })[0]) || {};
+    var link = safeUrl(item.link) || safeUrl(info.buttonLink);
+    var shop = !safeUrl(item.link) && link;
+    dlgBody.innerHTML = '<div class="done-ico" aria-hidden="true">🎁</div><h2>It’s yours!</h2>' +
+      '<p><strong>' + esc(item.title) + '</strong> is now marked as taken for ' + (occ === 'Christmas' ? 'Christmas' : esc(state.child) + '’s birthday') + '.</p>' +
+      (shop ? '<p>Remember to tell the shop it’s for <strong>' + (occ === 'Christmas' ? 'Christmas' : 'a birthday') + '</strong> so they wrap it right.</p>' : '') +
+      (link ? '' : '<p>Now just remember to buy it! 😉</p>') +
+      '<div class="row">' + (link ? '<a class="btn primary" href="' + esc(link) + '" target="_blank" rel="noopener">' + (shop ? esc(info.buttonLabel || 'Contact the shop') : 'Buy it now') + ' ↗</a>' : '') +
+      '<button type="button" class="btn" data-close>Back to the list</button></div>';
+  }
+
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-claim],[data-close],[data-kid]');
+    if (!t) { if (e.target === dlg) dlg.close(); return; }
+    if (t.hasAttribute('data-claim')) openClaim(t.getAttribute('data-claim'));
+    else if (t.hasAttribute('data-close')) dlg.close();
+    else if (t.hasAttribute('data-kid')) { state.child = t.getAttribute('data-kid'); render(); window.scrollTo(0, 0); }
+  });
+
+  load();
+})();
+</script>
+</body>
+</html>
