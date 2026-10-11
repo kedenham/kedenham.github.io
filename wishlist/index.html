@@ -239,9 +239,13 @@
     document.title = kid.name + '’s wish list';
 
     var items = d.items.filter(function (i) { return !i.child || i.child === kid.name; });
-    var catOrder = d.categories.map(function (c) { return c.name; });
+    var catOrder = [], catInfo = {};
+    d.categories.forEach(function (c) {
+      if (c.child && c.child !== kid.name) return;
+      if (catOrder.indexOf(c.name) < 0) catOrder.push(c.name);
+      if (!catInfo[c.name] || c.child) catInfo[c.name] = c;
+    });
     items.forEach(function (i) { if (catOrder.indexOf(i.category) < 0) catOrder.push(i.category); });
-    var catInfo = {}; d.categories.forEach(function (c) { catInfo[c.name] = c; });
     var groups = catOrder.map(function (name) {
       return { name: name, info: catInfo[name] || {}, items: items.filter(function (i) { return i.category === name; }).sort(function (a, b) { return (b.star ? 1 : 0) - (a.star ? 1 : 0); }) };
     }).filter(function (g) { return g.items.length; });
@@ -331,7 +335,8 @@
   }
 
   function done(item, occ) {
-    var info = (state.data.categories.filter(function (c) { return c.name === item.category; })[0]) || {};
+    var matches = state.data.categories.filter(function (c) { return c.name === item.category && (!c.child || c.child === state.child); });
+    var info = matches.filter(function (c) { return c.child; })[0] || matches[0] || {};
     var link = safeUrl(item.link) || safeUrl(info.buttonLink);
     var shop = !safeUrl(item.link) && link;
     dlgBody.innerHTML = '<div class="done-ico" aria-hidden="true">🎁</div><h2>It’s yours!</h2>' +
